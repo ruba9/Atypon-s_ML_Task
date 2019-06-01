@@ -1,23 +1,69 @@
+#this code process the dataset and splits the reviewa and labels.
+import csv
 from collections import Counter
 import numpy as np
 import time
 import sys
 
+def preprocess_data():
+
+    test_revs_file = open('test_revs.txt','w') 
+    test_labels_file = open('test_labels.txt','w') 
+    train_revs_file = open('train_revs.txt','w') 
+    train_labels_file = open('train_labels.txt','w') 
+
+    with open('imdb_master.csv', mode='r') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        line_count = 0
+        for row in csv_reader:
+            line_count += 1
+            type = row['type']
+            if type == "test":
+                review = row['review'] + '\n'
+                label = row['label']
+                if label == "pos":
+                    label = 'positive' + '\n'
+                else: 
+                    label = 'negative' + '\n'
+                test_revs_file.write(review)
+                test_labels_file.write(label)
+            if type == "train":
+                review = row['review'] + '\n'
+                label = row['label']
+                if label == "pos":
+                    label = 'positive' + '\n'
+                else:
+                    label = 'negative' + '\n'
+                train_revs_file.write(review)
+                train_labels_file.write(label)
+        print("Preprocessed %d reviews." % line_count)
+
+    test_revs_file.close()
+    test_labels_file.close()
+    train_revs_file.close()
+    train_labels_file.close()
+
+
+preprocess_data()
+
 def pretty_print_review_and_label(i):
     print(labels[i] + "\t:\t" + reviews[i][:80] + "...")
 
-g = open('reviews.txt','r') # What we know!
+g = open('test_revs.txt','r') # What we know!
 reviews = list(map(lambda x:x[:-1],g.readlines()))
 g.close()
 
-g = open('labels.txt','r') # What we WANT to know!
+g = open('test_labels.txt','r') # What we WANT to know!
 labels = list(map(lambda x:x[:-1].upper(),g.readlines()))
 g.close()
 
+g = open('train_revs.txt','r') 
+training_reviews = list(map(lambda x:x[:-1],g.readlines()))
+g.close()
 
-
-#reviews[10]
-#labels[10]
+g = open('train_labels.txt','r') 
+training_labels = list(map(lambda x:x[:-1],g.readlines()))
+g.close()
 
 # Created three Counter objects to store positive, negative and total counts
 positive_counts = Counter()
@@ -36,7 +82,7 @@ for i in range(len(reviews)):
             total_counts[word] += 1
 
 
-  # Examine the counts of the most common words in positive reviews
+# Examine the counts of the most common words in positive reviews
 positive_counts.most_common()
 
 # Examine the counts of the most common words in negative reviews
@@ -109,7 +155,7 @@ update_input_layer(reviews[0])
 layer_0  
 
 def get_target_for_label(label):
-    """Convert a label to `0` or `1`.
+    """Converted a label to `0` or `1`.
     Args:
         label(string) - Either "POSITIVE" or "NEGATIVE".
     Returns:
@@ -121,7 +167,7 @@ def get_target_for_label(label):
         return 0
     
   
-# Encapsulate neural network in a class
+#Encapsulated neural network in a class
 class SentimentNetwork:
     def __init__(self, reviews,labels,hidden_nodes = 10, learning_rate = 0.1):
         """Create a SentimenNetwork with the following
@@ -334,31 +380,6 @@ class SentimentNetwork:
             return "NEGATIVE"
         
 mlp = SentimentNetwork(reviews[:-1000],labels[:-1000], learning_rate=0.1)
-mlp.train(reviews[:-1000],labels[:-1000])
+mlp.train(training_reviews[:-1000],training_labels[:-1000])
 mlp.test(reviews[-1000:],labels[-1000:])
         
-
-    
- This is how the output looked like:
-
-Pos-to-neg ratio for 'the' = 1.0607993145235326
-Pos-to-neg ratio for 'amazing' = 4.022813688212928
-Pos-to-neg ratio for 'terrible' = 0.17744252873563218
-Pos-to-neg ratio for 'the' = 0.05902269426102881
-Pos-to-neg ratio for 'amazing' = 1.3919815802404802
-Pos-to-neg ratio for 'terrible' = -1.7291085042663878
-74074
-Progress:0.0% Speed(reviews/sec):0.0 #Correct:1 #Trained:1 Training Accuracy:100.%
-Progress:10.4% Speed(reviews/sec):427.6 #Correct:1798 #Trained:2501 Training Accuracy:71.8%
-Progress:20.8% Speed(reviews/sec):431.7 #Correct:3782 #Trained:5001 Training Accuracy:75.6%
-Progress:31.2% Speed(reviews/sec):410.3 #Correct:5871 #Trained:7501 Training Accuracy:78.2%
-Progress:41.6% Speed(reviews/sec):405.6 #Correct:8000 #Trained:10001 Training Accuracy:79.9%
-Progress:52.0% Speed(reviews/sec):407.5 #Correct:10114 #Trained:12501 Training Accuracy:80.9%
-Progress:62.5% Speed(reviews/sec):407.2 #Correct:12244 #Trained:15001 Training Accuracy:81.6%
-Progress:72.9% Speed(reviews/sec):411.0 #Correct:14357 #Trained:17501 Training Accuracy:82.0%
-Progress:83.3% Speed(reviews/sec):412.3 #Correct:16538 #Trained:20001 Training Accuracy:82.6%
-Progress:93.7% Speed(reviews/sec):413.8 #Correct:18715 #Trained:22501 Training Accuracy:83.1%
-Progress:99.9% Speed(reviews/sec):1229. #Correct:846 #Tested:1000 Testing Accuracy:84.6%.
-
-
-   
